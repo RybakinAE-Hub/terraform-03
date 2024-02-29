@@ -1,16 +1,15 @@
-resource "yandex_compute_disk" "storage_1" {
-  count   = 3
+resource "yandex_compute_disk" "storage" {
+  count   = var.disk_count
   name  = "disk-${count.index + 1}"
   size  = 1
 }
 
-
 resource "yandex_compute_instance" "storage" {
   name = "storage"
   resources {
-    cores = 2
-    memory = 1
-    core_fraction = 20
+    cores = var.disk_cores
+    memory = var.disk_memory
+    core_fraction = var.disk_core
   }
 
   boot_disk {
@@ -20,18 +19,19 @@ resource "yandex_compute_instance" "storage" {
   }
 
   dynamic "secondary_disk" {
-   for_each = { for stor in yandex_compute_disk.storage_1[*]: stor.name=> stor }
+   for_each =  yandex_compute_disk.storage
    content {
      disk_id = secondary_disk.value.id
    }
   }
+
   network_interface {
      subnet_id = yandex_vpc_subnet.develop.id
-     nat     = true
+     nat     = var.nat
   }
 
   metadata = {
-    serial-port-enable = 1
+    serial-port-enable = var.meta_serial
     ssh-keys = "ubuntu:${var.vms_ssh_root_key}"
   }
 }

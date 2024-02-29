@@ -1,15 +1,15 @@
 
 data "yandex_compute_image" "ubuntu" {
-  family = "ubuntu-2004-lts"
+  family = var.count_family
 }
   resource "yandex_compute_instance" "web" {
-    count = 2
+    count = var.count_count
     name  = "web-${count.index + 1}"
-    platform_id = "standard-v1"
+    platform_id = var.platform_id
   resources {
-    cores         = 2
-    memory        = 1
-    core_fraction = 20
+    cores         = var.count_cores
+    memory        = var.count_memory
+    core_fraction = var.count_core
   }
   boot_disk {
     initialize_params {
@@ -17,16 +17,16 @@ data "yandex_compute_image" "ubuntu" {
     }
   }
   scheduling_policy {
-    preemptible = true
+    preemptible = var.preemptible
   }
   network_interface {
     subnet_id = yandex_vpc_subnet.develop.id
-    nat       = true
+    nat       = var.nat
     security_group_ids = [yandex_vpc_security_group.example.id]
   }
 
   metadata = {
-    serial-port-enable = 1
+    serial-port-enable = var.meta_serial
     ssh-keys           = "ubuntu:${local.ssh_key}"
   } 
 }
